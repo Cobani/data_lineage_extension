@@ -155,11 +155,32 @@ body {
 .hdr {
   position: absolute;
   top: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   line-height: 20px;
 }
+
+.hdr-tx { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.hdr .hdr-tgl {
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid #d5d9df;
+  border-radius: 9px;
+  background: #fff;
+  color: inherit;
+  font-family: inherit;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0;
+  text-align: center;
+  cursor: pointer;
+}
+.hdr .hdr-tgl:hover { border-color: #2f5bd3; color: #2f5bd3; }
 
 .canvas { position: relative; }
 

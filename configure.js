@@ -313,6 +313,8 @@
     var gc = group(p, 'Expand / collapse');
     gc.appendChild(checkboxRow('Show +/− button', 'collapse.button'));
     gc.appendChild(help('A button on the right of each node hides or shows its relations in the next columns. Nodes only reached through it disappear and the columns close up. Right-click → Expand all / Collapse all.'));
+    gc.appendChild(checkboxRow('Level buttons', 'collapse.levelButtons'));
+    gc.appendChild(help('A +/− button in each column header expands or collapses every node of that level (expanding also opens the levels before it). Needs Show headers; right-click a node for the same per level.'));
     gc.appendChild(checkboxRow('Start collapsed', 'collapse.startCollapsed'));
     gc.appendChild(help('Only the first column shows when the sheet opens; expand nodes one by one. Search shows matches even inside collapsed nodes.'));
 

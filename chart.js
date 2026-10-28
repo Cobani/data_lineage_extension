@@ -546,6 +546,31 @@
     paint();
   }
 
+  /** Any node of this level with relations in the next column (in the full data). */
+  function levelHasKids (L) {
+    return graph.nodes.some(function (n) { return n.L === L && n.kids; }) ||
+      Object.keys(graph.byId).some(function (id) { var n = graph.byId[id]; return n.L === L && n.kids; });
+  }
+
+  /** A level counts as expanded while any of its shown nodes shows its relations. */
+  function levelOpen (L) {
+    return (graph.cols[L] || []).some(function (n) { return n.kids && n.open; });
+  }
+
+  /**
+   * Expands or collapses every node of a level. Expanding also expands the
+   * levels before it, so the level's relations become visible.
+   */
+  function toggleLevel (L, open) {
+    if (!graph) return;
+    if (open == null) open = !levelOpen(L);
+    Object.keys(graph.byId).forEach(function (id) {
+      var n = graph.byId[id];
+      if (n.L === L || (open && n.L < L)) state.exp[id] = open;
+    });
+    paint();
+  }
+
   function matchText (s, q) { return String(s).toLowerCase().indexOf(q) >= 0; }
 
   function buildGraph () {
@@ -904,7 +929,22 @@
         d.style.textTransform = H.uppercase ? 'uppercase' : 'none';
         d.style.letterSpacing = (Number(H.spacing) || 0) + 'em';
         d.style.lineHeight = hdrH - 8 + 'px';
-        d.textContent = headerText(i);
+        var tx = document.createElement('span');
+        tx.className = 'hdr-tx';
+        tx.textContent = headerText(i);
+        d.appendChild(tx);
+        if (cfg.collapse.levelButtons && i < nL - 1 && levelHasKids(i)) {
+          var open = levelOpen(i);
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'tgl hdr-tgl' + (open ? '' : ' is-closed');
+          b.dataset.level = String(i);
+          b.textContent = open ? '−' : '+';
+          b.title = (open ? 'Collapse every ' : 'Expand every ') + legendName(i).toLowerCase();
+          b.setAttribute('aria-expanded', String(open));
+          b.style.fontSize = Math.max(10, H.size) + 'px';
+          d.appendChild(b);
+        }
         el.headers.appendChild(d);
       });
       el.headers.style.width = width + 'px';
@@ -1198,6 +1238,8 @@
   }
 
   function onClick (e) {
+    var ht = e.target && e.target.closest ? e.target.closest('.hdr-tgl') : null;
+    if (ht) { toggleLevel(Number(ht.dataset.level)); return; }
     var tg = e.target && e.target.closest ? e.target.closest('.tgl') : null;
     if (tg) { var tn = nodeFromEvent(e); if (tn) toggleNode(tn); return; }
     if (e.detail > 1) return;
@@ -1310,6 +1352,11 @@
         el.search.value = n.label; onSearch(true);
       }]);
       if (n.kids) items.push([n.open ? 'Collapse' : 'Expand', function () { toggleNode(n); }]);
+      if (n.L < raw.levels.length - 1 && levelHasKids(n.L)) {
+        var lvName = headerText(n.L);
+        items.push(['Expand all “' + lvName + '”', function () { toggleLevel(n.L, true); }],
+          ['Collapse all “' + lvName + '”', function () { toggleLevel(n.L, false); }]);
+      }
       items.push(['Format level “' + headerText(n.L) + '”…', function () { openDialog({ tab: 'levels', item: n.L }); }]);
       items.push(null);
     } else if (state.sel) {

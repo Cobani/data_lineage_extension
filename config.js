@@ -188,6 +188,7 @@
     // ---- Expand / collapse ---------------------------------------------------------
     collapse: {
       button: true, // +/− button on the right of every node that has relations in the next column
+      levelButtons: true, // +/− button in each column header: expand / collapse the whole level
       startCollapsed: false // true: only the first column shows; expand nodes one by one
     },
 
