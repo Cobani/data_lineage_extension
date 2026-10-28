@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data Lineage — dev preview</title>
+<style>
+  body { margin: 0; font: 13px/1.4 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #263244; background: #eef0f2; }
+  .bar { display: flex; gap: 14px; align-items: center; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e2e4e8; flex-wrap: wrap; }
+  .bar b { font-size: 14px; }
+  .wrap { display: flex; gap: 16px; padding: 16px; align-items: flex-start; }
+  .zone { resize: both; overflow: hidden; width: 960px; height: 640px; background: #fff; border: 1px solid #d5d9df; }
+  .zone iframe, .dlg iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .dlg { width: 620px; height: 780px; background: #fff; border: 1px solid #d5d9df; box-shadow: 0 6px 24px rgba(0,0,0,.12); display: none; }
+  button, select { font: inherit; padding: 4px 10px; }
+  .note { color: #68707d; }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <b>Data Lineage — dev preview</b>
+    <label>Sample data
+      <select id="ds">
+        <option value="lineage">Table › Data Source › Workbook › View (design)</option>
+        <option value="small">System › Model › Report (3 levels)</option>
+        <option value="gaps">Nulls: unused table, source without workbook</option>
+        <option value="big">Stress test: 120 tables (add &amp;n=400 in the URL)</option>
+        <option value="one">One level only</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="rename"> Rename first Levels pill</label>
+    <button id="fmt" type="button">Format Extension</button>
+    <button id="reset" type="button">Reset settings</button>
+    <span class="note">Click a node to select its lineage, right-click for the menu, double-click to format its level. Drag the zone's corner to resize.</span>
+  </div>
+  <div class="wrap">
+    <div class="zone"><iframe id="card" title="chart"></iframe></div>
+    <div class="dlg" id="dlg"><iframe id="dialog" title="Format dialog"></iframe></div>
+  </div>
+<script>
+  var ds = document.getElementById('ds');
+  ds.value = localStorage.getItem('dlMockData') || 'lineage';
+  var rn = document.getElementById('rename');
+  rn.checked = localStorage.getItem('dlMockRename') === '1';
+  rn.addEventListener('change', function () { localStorage.setItem('dlMockRename', rn.checked ? '1' : '0'); closeDlg(); load(); });
+  function load () {
+    var n = /[?&]n=(\d+)/.exec(location.search);
+    document.getElementById('card').src = '../index.html?mock&data=' + ds.value + (rn.checked ? '&rename' : '') + (n ? '&n=' + n[1] : '') + (/debug/.test(location.search) ? '&debug' : '');
+  }
+  ds.addEventListener('change', function () { localStorage.setItem('dlMockData', ds.value); closeDlg(); load(); });
+  document.getElementById('reset').addEventListener('click', function () { localStorage.removeItem('dlMockSettings'); closeDlg(); load(); });
+  document.getElementById('fmt').addEventListener('click', function () {
+    document.getElementById('card').contentWindow.postMessage({ type: 'dl-configure' }, '*');
+  });
+  function closeDlg () {
+    document.getElementById('dlg').style.display = 'none';
+    document.getElementById('dialog').src = 'about:blank';
+    var c = document.getElementById('card').contentWindow;
+    if (c) c.postMessage({ type: 'dl-dialog-closed' }, '*');
+  }
+  window.addEventListener('message', function (e) {
+    if (!e.data) return;
+    if (e.data.type === 'dl-open-dialog') {
+      document.getElementById('dlg').style.display = 'block';
+      document.getElementById('dialog').src = e.data.url;
+    }
+    if (e.data.type === 'dl-close-dialog') closeDlg();
+  });
+  load();
+</script>
+</body>
+</html>

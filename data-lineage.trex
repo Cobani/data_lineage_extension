@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="com.ilyascoban.vizext.datalineage" extension-version="1.0.0">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Data lineage flow: every row is a path (e.g. table → data source → workbook → view). Each dimension on Levels becomes a column of nodes linked to the next; Details add subtitles. Click a node to highlight its lineage and select it in Tableau.</description>
+    <author name="Ilyas Coban" email="ilyas.cbn@gmail.com" organization="Ilyas Coban" website="https://www.linkedin.com/in/ilyascoban/"/>
+    <min-api-version>1.11</min-api-version>
+    <source-location>
+      <url>https://cobani.github.io/data_lineage_extension/</url>
+    </source-location>
+    <icon/>
+
+    <!-- Adds the "Format Extension" button that opens configure.html -->
+    <context-menu>
+      <configure-context-menu-item />
+    </context-menu>
+
+    <encoding id="levels">
+      <display-name resource-id="levels-name">Levels</display-name>
+      <role-spec>
+        <role-type>discrete-dimension</role-type>
+      </role-spec>
+      <fields max-count="6"/>
+      <tooltip resource-id="levels-tooltip">Required. Drop each dimension separately, from source to target (e.g. Table, Data Source, Workbook, View). Each one becomes a column; the order on this tile is the order of the columns.</tooltip>
+    </encoding>
+
+    <encoding id="details">
+      <display-name resource-id="details-name">Details</display-name>
+      <role-spec>
+        <role-type>discrete-dimension</role-type>
+      </role-spec>
+      <fields max-count="8"/>
+      <tooltip resource-id="details-tooltip">Optional. Dimensions shown as node subtitles (e.g. schema, connection type, sheet type). Each one goes under the level it describes; change where and how in Format → Levels.</tooltip>
+    </encoding>
+  </worksheet-extension>
+
+  <resources>
+    <resource id="name"><text locale="en_US">Data Lineage</text></resource>
+    <resource id="levels-name"><text locale="en_US">Levels</text></resource>
+    <resource id="levels-tooltip"><text locale="en_US">Required. Drop each dimension separately, from source to target (e.g. Table, Data Source, Workbook, View). Each one becomes a column; the order on this tile is the order of the columns.</text></resource>
+    <resource id="details-name"><text locale="en_US">Details</text></resource>
+    <resource id="details-tooltip"><text locale="en_US">Optional. Dimensions shown as node subtitles (e.g. schema, connection type, sheet type). Each one goes under the level it describes; change where and how in Format → Levels.</text></resource>
+  </resources>
+</manifest>

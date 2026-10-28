@@ -1,0 +1,285 @@
+/* Data Lineage — header styled like KPI Card; fonts, colours and sizes are set
+   inline by chart.js from the saved settings. */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: transparent;
+  line-height: normal;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+  font-family: "Lato", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ---- Header (same as KPI Card) + tools ---------------------------------- */
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: none;
+  min-width: 0;
+}
+
+.head {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: center;
+  min-width: 0;
+}
+
+.icon {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.head.icon-span .icon { grid-row: 1 / span 2; }
+.icon svg, .icon img { display: block; }
+
+.title, .explanation {
+  grid-column: 2;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title { grid-row: 1; }
+.explanation { grid-row: 2; }
+
+.card.no-icon .head { grid-template-columns: minmax(0, 1fr); }
+.card.no-icon .title, .card.no-icon .explanation { grid-column: 1; }
+.card.no-head .head { display: none; }
+
+.tools {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tools:empty, .tools.is-empty { display: none; }
+
+/* ---- Legend ------------------------------------------------------------ */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: 16px;
+  row-gap: 4px;
+  min-width: 0;
+}
+
+.legend:empty { display: none; }
+
+.legendrow { flex: none; display: none; margin-top: 8px; }
+.legendrow.is-on { display: block; }
+.legendrow .legend { justify-content: flex-start; }
+.card.legend-bottom .legendrow { order: 5; margin-top: 8px; }
+
+.lg-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.lg-sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.lg-sw.is-circle { border-radius: 50%; }
+.lg-line { width: 16px; height: 0; border-top: 2.5px solid; border-radius: 2px; flex: none; }
+
+/* ---- Search ------------------------------------------------------------ */
+.searchbox { display: none; }
+.searchbox.is-on { display: block; }
+
+.searchbox input {
+  height: 26px;
+  width: 180px;
+  max-width: 100%;
+  padding: 0 8px 0 26px;
+  border: 1px solid #d5d9df;
+  border-radius: 4px;
+  font: 12px "Lato", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #263244;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238c96a3' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") 7px center no-repeat;
+  user-select: text;
+}
+
+.searchbox input:focus { outline: 2px solid rgba(47, 91, 211, 0.25); border-color: #2f5bd3; }
+.searchbox .count { margin-left: 6px; font-size: 11px; color: #8c96a3; }
+
+/* ---- Plot: column headers + scrollable canvas --------------------------- */
+.plot {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  overflow: auto;
+  scrollbar-gutter: stable; /* Windows scrollbars: the layout width doesn't change when it appears */
+  margin-top: 12px;
+}
+
+.headers {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 28px;
+}
+
+.headers:empty { display: none; }
+
+.hdr {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 20px;
+}
+
+.canvas { position: relative; }
+
+.svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+
+.svg path { fill: none; stroke-linecap: round; }
+.svg .lit path { transition: stroke 0.12s; }
+
+.nodes { position: absolute; left: 0; top: 0; }
+
+/* ---- Nodes ----------------------------------------------------------- */
+.node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-style: solid;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background-color 0.12s, border-color 0.12s, opacity 0.12s;
+}
+
+.node .mk { flex: none; display: block; }
+.node .tx { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.node .nm {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+.node .nm .inl { font-weight: 400; }
+.node .nm.is-mono { display: block; white-space: nowrap; text-overflow: ellipsis; overflow-wrap: normal; }
+.node .sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+.node.sub-above .tx { flex-direction: column-reverse; }
+
+.node.is-match { box-shadow: 0 0 0 2px var(--match, #eb644c); }
+.node.is-faded { opacity: var(--fade, 0.35); }
+.node.is-hidden { display: none; }
+.svg .is-faded { opacity: var(--fade, 0.35); }
+.svg .is-hidden { display: none; }
+
+.empty-filter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  text-align: center;
+  font-size: 12px;
+  color: #8c96a3;
+}
+
+/* ---- Tooltip ---------------------------------------------------------- */
+.tooltip {
+  display: none;
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  min-width: 160px;
+  max-width: 340px;
+  padding: 8px 10px;
+  background: #ffffff;
+  border: 1px solid #e2e4e8;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(38, 50, 68, 0.12);
+  font: 12px/1.4 "Lato", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #263244;
+}
+
+.tt-level { display: flex; align-items: center; gap: 6px; color: #68707d; font-size: 11px; }
+.tt-level .lg-sw { width: 8px; height: 8px; }
+.tt-name { font-weight: 700; font-size: 13px; margin: 2px 0; overflow-wrap: anywhere; }
+.tt-rows { margin-top: 6px; border-top: 1px solid #eef0f2; padding-top: 5px; }
+.tt-row { display: flex; align-items: flex-start; gap: 10px; }
+.tt-row .nm { flex: none; max-width: 55%; color: #55606e; }
+.tt-row .vl { flex: 1; text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+.tt-sec { font-size: 10.5px; color: #8c96a3; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+.tt-hint { margin-top: 5px; color: #a0a8b3; font-size: 10.5px; }
+
+/* ---- Right-click menu ------------------------------------------------- */
+.menu {
+  display: none;
+  position: fixed;
+  z-index: 20;
+  min-width: 200px;
+  padding: 4px 0;
+  background: #ffffff;
+  border: 1px solid #e2e4e8;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(38, 50, 68, 0.16);
+  font: 12.5px/1.3 "Lato", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #263244;
+}
+
+.menu button {
+  display: block;
+  width: 100%;
+  padding: 7px 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu button:hover { background: #f2f4f6; }
+.menu hr { border: 0; border-top: 1px solid #eef0f2; margin: 4px 0; }
+.menu .menu-head { padding: 4px 14px 2px; font-size: 11px; color: #8c96a3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+
+/* ---- Empty state ------------------------------------------------------ */
+.hint {
+  display: none;
+  margin: auto;
+  max-width: 90%;
+  font: 12px/1.45 "Lato", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #68707d;
+  text-align: center;
+}
+
+.card.is-empty > :not(.hint) { display: none !important; }
+.card.is-empty .hint { display: block; }

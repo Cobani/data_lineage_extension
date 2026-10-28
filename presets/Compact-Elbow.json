@@ -1,0 +1,13 @@
+{
+  "type": "tableau-data-lineage-preset",
+  "version": 1,
+  "name": "Compact elbow",
+  "scope": "look",
+  "exported": "2026-10-28T09:00:00.000Z",
+  "settings": {
+    "nodes": { "minWidth": 110, "maxWidth": 190, "gap": 6, "padY": 4, "size": 11, "subSize": 10, "maxLines": 1, "radius": 3 },
+    "links": { "curve": "step", "minSpace": 36 },
+    "highlight": { "fade": "fade", "fadeOpacity": 30 },
+    "legend": { "position": "top" }
+  }
+}
