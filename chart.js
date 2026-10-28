@@ -31,7 +31,9 @@
   var state = {
     sel: null, // id of the clicked node
     hover: null, // id of the hovered node
-    query: '' // search text
+    query: '', // search text
+    exp: {}, // node id → true (expanded) / false (collapsed); others follow collapse.startCollapsed
+    startCollapsed: null // the setting the expand state was made for
   };
 
   // ---------------------------------------------------------------------------
@@ -320,7 +322,7 @@
       var prevSig = raw && raw.sig;
       raw = extract(table, fields);
       raw.sig = fieldsSig(fields);
-      if (prevSig && prevSig !== raw.sig) state.sel = null;
+      if (prevSig && prevSig !== raw.sig) { state.sel = null; state.exp = {}; }
       var tp = performance.now();
       paint();
       if (first) {
@@ -521,6 +523,29 @@
     return { level: lvl, show: show };
   }
 
+  function isExpanded (id) {
+    if (Object.prototype.hasOwnProperty.call(state.exp, id)) return state.exp[id];
+    return !cfg.collapse.startCollapsed;
+  }
+
+  /** Expands or collapses a node's downstream relations; the node stays where it was on screen. */
+  function toggleNode (n, open) {
+    if (open == null) open = !n.open;
+    var before = n.div ? n.y - el.plot.scrollTop : null;
+    var id = n.id;
+    state.exp[id] = open;
+    paint();
+    var m = graph && graph.byId[id];
+    if (m && m.div && before != null) el.plot.scrollTop = Math.max(0, m.y - before);
+  }
+
+  function setAll (open) {
+    state.exp = {};
+    if (open === !cfg.collapse.startCollapsed) { paint(); return; }
+    if (raw && graph) graph.fullRows.forEach(function (r) { r.ids.forEach(function (id) { state.exp[id] = open; }); });
+    paint();
+  }
+
   function matchText (s, q) { return String(s).toLowerCase().indexOf(q) >= 0; }
 
   function buildGraph () {
@@ -562,6 +587,33 @@
       if (keepRows.length || !Object.keys(matches).length) rows = keepRows;
     }
 
+    // full paths (before collapsing): counts, children and tooltips use these
+    var fullRows = rows;
+    var kids = {};
+    var leafAll = {};
+    var lastL = nL - 1;
+    fullRows.forEach(function (r) {
+      var t = r.ids[r.ids.length - 1];
+      r.ids.forEach(function (id, k) {
+        if (k < r.ids.length - 1) (kids[id] || (kids[id] = {}))[r.ids[k + 1]] = 1;
+        if (byId[t].L === lastL) (leafAll[id] || (leafAll[id] = {}))[t] = 1;
+      });
+    });
+    nodes.forEach(function (n) {
+      n.kids = kids[n.id] ? Object.keys(kids[n.id]).length : 0;
+      n.count = leafAll[n.id] ? Object.keys(leafAll[n.id]).length : 0;
+      n.collapsed = n.kids > 0 && !isExpanded(n.id);
+    });
+
+    // collapsed nodes: a path stops at the first collapsed node (paths to a search match stay whole)
+    rows = fullRows.map(function (r) {
+      if (q && r.ids.some(function (id) { return matches[id]; })) return r;
+      for (var k = 0; k < r.ids.length - 1; k++) {
+        if (byId[r.ids[k]].collapsed) return { ids: r.ids.slice(0, k + 1), x: r.x, cut: true };
+      }
+      return r;
+    });
+
     // rebuild what the kept rows use
     var used = {};
     rows.forEach(function (r, ri) {
@@ -594,27 +646,21 @@
       });
     });
 
-    // last-level items each node feeds
-    var last = nL - 1;
-    nodes.forEach(function (n) {
-      var leaf = {};
-      n.rows.forEach(function (ri) {
-        var ids = rows[ri].ids;
-        var t = ids[ids.length - 1];
-        if (byId[t].L === last) leaf[t] = 1;
-      });
-      n.count = Object.keys(leaf).length;
-    });
+    // shown children: a node whose children are all hidden by others counts as collapsed too
+    var shownKids = {};
+    edgeList.forEach(function (e) { shownKids[e.a.id] = 1; });
+    nodes.forEach(function (n) { n.open = !!shownKids[n.id]; });
+    fullRows.forEach(function (r, ri) { r.ids.forEach(function (id) { var n = byId[id]; (n.fullRows || (n.fullRows = [])).push(ri); }); });
 
     var cols = [];
     for (var L = 0; L < nL; L++) cols.push([]);
     nodes.forEach(function (n) { cols[n.L].push(n); });
 
     var allPaths = {};
-    rows.forEach(function (r) { allPaths[r.ids.join(SEP + SEP)] = 1; });
+    fullRows.forEach(function (r) { allPaths[r.ids.join(SEP + SEP)] = 1; });
 
     return {
-      nodes: nodes, byId: byId, edges: edgeList, rows: rows, cols: cols, dcfg: dcfg,
+      nodes: nodes, byId: byId, edges: edgeList, rows: rows, fullRows: fullRows, cols: cols, dcfg: dcfg,
       matches: matches, query: q, pathCount: Object.keys(allPaths).length
     };
   }
@@ -629,7 +675,7 @@
     var cols = g.cols;
     var renum = function (col) { col.forEach(function (n, i) { n.ord = i; }); };
     cols.forEach(function (col) {
-      col.sort(mode === 'name' ? byName : function (a, b) { return b.rows.length - a.rows.length || byName(a, b); });
+      col.sort(mode === 'name' ? byName : function (a, b) { return b.fullRows.length - a.fullRows.length || byName(a, b); });
       renum(col);
     });
     if (mode !== 'flow' || cols.length < 2) return;
@@ -671,6 +717,7 @@
     el.hint.innerHTML = '';
     hideTooltip();
 
+    if (state.startCollapsed !== cfg.collapse.startCollapsed) { state.exp = {}; state.startCollapsed = cfg.collapse.startCollapsed; }
     graph = buildGraph();
     if (state.sel && !graph.byId[state.sel]) state.sel = null;
     if (state.hover && !graph.byId[state.hover]) state.hover = null;
@@ -1010,6 +1057,20 @@
       tx.appendChild(sub);
     }
     d.appendChild(tx);
+    if (cfg.collapse.button && n.kids) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tgl' + (n.open ? '' : ' is-closed');
+      var nextL = n.L + 1;
+      var what = raw.levels[nextL] ? legendName(nextL).toLowerCase() : 'item';
+      b.textContent = n.open ? '−' : '+' + n.kids;
+      b.title = (n.open ? 'Hide ' : 'Show ') + n.kids + ' ' + plural(what, n.kids);
+      b.setAttribute('aria-expanded', String(n.open));
+      b.style.borderColor = N.border;
+      b.style.color = N.subColor;
+      b.style.fontFamily = Dl.fontStack(N.subFont);
+      d.appendChild(b);
+    }
     return d;
   }
 
@@ -1060,11 +1121,12 @@
   // ---------------------------------------------------------------------------
   // Highlight: the selected (or hovered) node's lineage, and search matches
   // ---------------------------------------------------------------------------
-  function lineage (ids) {
+  function lineage (ids, full) {
     var rows = {};
-    ids.forEach(function (id) { var n = graph.byId[id]; if (n && n.rows) n.rows.forEach(function (r) { rows[r] = 1; }); });
+    var key = full ? 'fullRows' : 'rows';
+    ids.forEach(function (id) { var n = graph.byId[id]; if (n && n[key]) n[key].forEach(function (r) { rows[r] = 1; }); });
     var nodes = {};
-    Object.keys(rows).forEach(function (r) { graph.rows[r].ids.forEach(function (id) { nodes[id] = 1; }); });
+    Object.keys(rows).forEach(function (r) { graph[key][r].ids.forEach(function (id) { nodes[id] = 1; }); });
     return { rows: rows, nodes: nodes };
   }
 
@@ -1136,6 +1198,8 @@
   }
 
   function onClick (e) {
+    var tg = e.target && e.target.closest ? e.target.closest('.tgl') : null;
+    if (tg) { var tn = nodeFromEvent(e); if (tn) toggleNode(tn); return; }
     if (e.detail > 1) return;
     var n = nodeFromEvent(e);
     hideMenu();
@@ -1143,6 +1207,7 @@
   }
 
   function onDblClick (e) {
+    if (e.target && e.target.closest && e.target.closest('.tgl')) return;
     var n = nodeFromEvent(e);
     if (!n || cfg.interaction.dblclick !== 'format') return;
     openDialog({ tab: 'levels', item: n.L });
@@ -1200,7 +1265,7 @@
     }
     if (rows.length) html += '<div class="tt-rows">' + rows.map(function (r) { return '<div class="tt-row"><span class="nm">' + esc(r[0]) + '</span><span class="vl">' + esc(r[1]) + '</span></div>'; }).join('') + '</div>';
     if (T.showCounts && raw.levels.length > 1) {
-      var lin = lineage([n.id]);
+      var lin = lineage([n.id], true);
       var per = raw.levels.map(function () { return 0; });
       Object.keys(lin.nodes).forEach(function (id) { var m = graph.byId[id]; if (m && m.id !== n.id) per[m.L]++; });
       var up = []; var down = [];
@@ -1211,7 +1276,7 @@
       });
       if (up.length) html += '<div class="tt-rows"><div class="tt-sec">Upstream</div>' + up.join('') + '</div>';
       if (down.length) html += '<div class="tt-rows"><div class="tt-sec">Downstream</div>' + down.join('') + '</div>';
-      html += '<div class="tt-hint">' + n.rows.length.toLocaleString('en-US') + ' path' + (n.rows.length === 1 ? '' : 's') +
+      html += '<div class="tt-hint">' + n.fullRows.length.toLocaleString('en-US') + ' path' + (n.fullRows.length === 1 ? '' : 's') +
         ' · click to ' + (state.sel === n.id ? 'clear' : 'select') + '</div>';
     }
     var t = el.tooltip;
@@ -1244,11 +1309,13 @@
       items.push(['Search for “' + (n.label.length > 30 ? n.label.slice(0, 29) + '…' : n.label) + '”', function () {
         el.search.value = n.label; onSearch(true);
       }]);
+      if (n.kids) items.push([n.open ? 'Collapse' : 'Expand', function () { toggleNode(n); }]);
       items.push(['Format level “' + headerText(n.L) + '”…', function () { openDialog({ tab: 'levels', item: n.L }); }]);
       items.push(null);
     } else if (state.sel) {
       items.push(['Clear selection', function () { select(null); }], null);
     }
+    items.push(['Expand all', function () { setAll(true); }], ['Collapse all', function () { setAll(false); }], null);
     if (state.query) items.push(['Clear search', function () { el.search.value = ''; onSearch(); }], null);
     items.push(['Levels & details…', function () { openDialog({ tab: 'levels' }); }],
       ['Nodes…', function () { openDialog({ tab: 'nodes' }); }],

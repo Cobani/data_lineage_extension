@@ -28,7 +28,7 @@
     { id: 'nodes', label: 'Nodes', build: buildNodesTab, keys: ['nodes'] },
     { id: 'links', label: 'Links & highlight', build: buildLinksTab, keys: ['links', 'highlight'] },
     { id: 'legend', label: 'Headers & legend', build: buildLegendTab, keys: ['headers', 'legend'] },
-    { id: 'search', label: 'Search & actions', build: buildSearchTab, keys: ['search', 'tooltip', 'interaction'] },
+    { id: 'search', label: 'Search & actions', build: buildSearchTab, keys: ['search', 'collapse', 'tooltip', 'interaction'] },
     { id: 'card', label: 'Card', build: buildCardTab, keys: ['card'] },
     { id: 'presets', label: 'Presets', build: buildPresetsTab, keys: [] }
   ];
@@ -309,6 +309,12 @@
     g1.appendChild(segRow('Matches', 'search.mode', [['highlight', 'Highlight lineage'], ['filter', 'Show only their lineage']]));
     g1.appendChild(numberRow('Width (px)', 'search.width', 100, 400, 10));
     g1.appendChild(help('Typing finds nodes by name (any column). Enter scrolls to the first match; Esc clears.'));
+
+    var gc = group(p, 'Expand / collapse');
+    gc.appendChild(checkboxRow('Show +/− button', 'collapse.button'));
+    gc.appendChild(help('A button on the right of each node hides or shows its relations in the next columns. Nodes only reached through it disappear and the columns close up. Right-click → Expand all / Collapse all.'));
+    gc.appendChild(checkboxRow('Start collapsed', 'collapse.startCollapsed'));
+    gc.appendChild(help('Only the first column shows when the sheet opens; expand nodes one by one. Search shows matches even inside collapsed nodes.'));
 
     var g2 = group(p, 'Tooltip');
     g2.appendChild(checkboxRow('Show tooltip', 'tooltip.show'));

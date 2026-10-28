@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <worksheet-extension id="com.ilyascoban.vizext.datalineage" extension-version="1.0.0">
+  <worksheet-extension id="com.ilyascoban.vizext.datalineage" extension-version="1.1.0">
     <default-locale>en_US</default-locale>
     <name resource-id="name"/>
     <description>Data lineage flow: every row is a path (e.g. table → data source → workbook → view). Each dimension on Levels becomes a column of nodes linked to the next; Details add subtitles. Click a node to highlight its lineage and select it in Tableau.</description>

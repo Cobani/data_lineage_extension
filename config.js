@@ -185,6 +185,12 @@
       width: 180
     },
 
+    // ---- Expand / collapse ---------------------------------------------------------
+    collapse: {
+      button: true, // +/− button on the right of every node that has relations in the next column
+      startCollapsed: false // true: only the first column shows; expand nodes one by one
+    },
+
     // ---- Tooltip + interaction ---------------------------------------------------
     tooltip: {
       show: true,

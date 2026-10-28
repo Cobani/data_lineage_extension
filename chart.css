@@ -212,6 +212,26 @@ body {
   color: #8c96a3;
 }
 
+/* ---- Expand / collapse button ------------------------------------------ */
+.node .tgl {
+  flex: none;
+  align-self: center;
+  min-width: 20px;
+  height: 20px;
+  margin-right: -4px;
+  padding: 0 5px;
+  border: 1px solid #d5d9df;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+}
+.node .tgl.is-closed { font-size: 10.5px; }
+.node .tgl:hover { border-color: #2f5bd3 !important; color: #2f5bd3 !important; }
+
 /* ---- Tooltip ---------------------------------------------------------- */
 .tooltip {
   display: none;

@@ -29,7 +29,7 @@ chmod +x serve.sh && ./serve.sh
 ```
 
 In Tableau Desktop (2024.2+): Marks card → mark type dropdown → **Add Extension** → **Access Local Extensions** →
-`Data Lineage localhost.trex` (in the `tableau-extensions` folder; it points at `http://localhost:8771`).
+`data-lineage.trex` (in the `tableau-extensions` folder; it loads the extension from GitHub Pages).
 
 To try it without Tableau, open <http://localhost:8771/dev/preview.html>. It has five sample data sets (the design's
 table › data source › workbook › view, a 3-level system › model › report, empty values, a stress test and a single
@@ -59,8 +59,12 @@ level) and opens the Format dialog next to the chart.
   Tableau. Click it again, on empty space, or press Esc to clear.
 - **Search** (top right): finds nodes by name in any column, outlines them and highlights their lineage (or shows only
   their lineage). Enter scrolls to the first match; Esc clears.
+- **+/− button** on the right of a node: hides or shows its relations in the next columns. Nodes reached only through
+  it disappear and the columns close up; a collapsed node shows how many items it hides (`+4`). Search shows matches
+  even inside collapsed nodes. *Start collapsed* (Search & actions) opens the sheet with only the first column.
 - **Double-click** a node: opens Format → Levels & details on its level.
-- **Right-click**: select lineage, search for this node, format its level, and quick links to the Format tabs.
+- **Right-click**: select lineage, expand / collapse, expand all / collapse all, search for this node, format its
+  level, and quick links to the Format tabs.
 - Too many nodes for the space: the chart scrolls, with the column headers kept on top. Columns narrower than the
   minimum node width scroll sideways.
 
@@ -77,7 +81,7 @@ level) and opens the Format dialog next to the chart.
 | Nodes | placement (next to linked nodes, or from the top) · min / max width · spacing and padding · name lines · background, border, radius · level marker · name and subtitle fonts |
 | Links & highlight | curved, elbow or straight links · colour, width, opacity, space between columns · selected lineage: link colour and width, node background and border, bold names, keep / fade / hide the rest, hover preview, search outline |
 | Headers & legend | column headers (font, uppercase, letter spacing) · legend: next to the title, above or below the chart, field names or headers, “Selected Node” item |
-| Search & actions | search box (placeholder, highlight or filter, width) · tooltip parts · select in Tableau · right-click menu · double-click · Format window on top of Tableau or floating |
+| Search & actions | search box (placeholder, highlight or filter, width) · +/− button, start collapsed · tooltip parts · select in Tableau · right-click menu · double-click · Format window on top of Tableau or floating |
 | Card | padding, space above the chart, background and chart-area background |
 | Presets | export, import and save settings |
 
